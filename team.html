@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>研究团队</title>
+  <link rel="stylesheet" href="assets/style.css" />
+</head>
+
+<body>
+  <div class="shell">
+    <!-- ===== Sidebar ===== -->
+    <aside class="sidebar">
+      <nav class="nav" aria-label="Site Navigation">
+        <a href="index.html"><span class="pill"></span>团队主页</a>
+        <a href="research.html"><span class="pill"></span>研究方向</a>
+        <a href="papers.html"><span class="pill"></span>论文专著</a>
+        <a href="team.html"><span class="pill"></span>研究团队</a>
+      </nav>
+    </aside>
+
+    <!-- ===== Main ===== -->
+    <main class="main">
+      <div class="container">
+        <section class="card">
+
+          <h1 class="detail-title" id="pageTitle">研究团队</h1>
+
+          <!-- ✅ 内容由 content/team.md 自动渲染到这里 -->
+          <div class="detail-stack" id="stackRoot"></div>
+
+          <!-- ✅ 读取失败提示（不会空白） -->
+          <div class="stack-item" id="fallbackBox" style="display:none; margin-top:14px;">
+            <div class="stack-h">提示</div>
+            <p class="stack-p" style="margin:0;">
+              未能读取 <b>content/team.md</b>，请检查文件是否存在、路径是否正确（注意大小写）。
+            </p>
+          </div>
+
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // ===== nav 高亮 =====
+    const path = location.pathname.split('/').pop() || 'index.html';
+    document.querySelectorAll('.nav a').forEach(a=>{
+      if(a.getAttribute('href')===path) a.classList.add('active');
+    });
+
+    const mdUrl = 'content/team.md';
+
+    function esc(s){
+      return (s||'').replace(/[&<>"']/g,m=>({
+        '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+      }[m]));
+    }
+
+    // 解析规则：
+    // # 标题
+    // 普通段落（两段介绍）
+    // ## 团队列表
+    // 每行：团队名称 | 成员1、成员2……
+    // 以 // 开头的行全部忽略（老师注释不会显示在网页）
+    function parseMd(md){
+      const lines = md.replace(/\r/g,'').split('\n');
+
+      let title = '研究团队';
+      const paragraphs = [];
+      const rows = [];
+      let mode = 'text';
+
+      for(const raw of lines){
+        const t = raw.trim();
+        if(!t) continue;
+
+        if(t.startsWith('//')) continue; // 注释不渲染
+
+        if(t.startsWith('# ')){
+          title = t.slice(2).trim() || title;
+          continue;
+        }
+
+        if(t.startsWith('## ')){
+          mode = 'table';
+          continue;
+        }
+
+        if(mode === 'text'){
+          // 过滤分隔线
+          if(t.startsWith('---') || t.startsWith('***') || t.startsWith('===')) continue;
+          paragraphs.push(raw.trim());
+        }else{
+          if(t.includes('|')){
+            const parts = t.split('|');
+            rows.push({
+              name: (parts[0]||'').trim(),
+              members: (parts[1]||'').trim()
+            });
+          }
+        }
+      }
+
+      return { title, paragraphs, rows };
+    }
+
+    function render(data){
+      document.getElementById('pageTitle').textContent = data.title || '研究团队';
+      document.title = data.title || '研究团队';
+
+      const root = document.getElementById('stackRoot');
+      root.innerHTML = '';
+
+      // 段落
+      (data.paragraphs || []).forEach(p=>{
+        root.insertAdjacentHTML('beforeend', `
+          <div class="stack-item">
+            <p class="stack-p">${esc(p)}</p>
+          </div>
+        `);
+      });
+
+      // 表格
+      if(data.rows && data.rows.length){
+        let html = `
+          <div class="stack-item">
+            <div class="team-table-wrap" role="region" aria-label="研究团队列表">
+              <table class="team-table">
+                <thead>
+                  <tr>
+                    <th>团队名称</th>
+                    <th>团队主要成员</th>
+                  </tr>
+                </thead>
+                <tbody>
+        `;
+
+        data.rows.forEach(r=>{
+          html += `
+            <tr>
+              <td>${esc(r.name)}</td>
+              <td>${esc(r.members)}</td>
+            </tr>
+          `;
+        });
+
+        html += `
+                </tbody>
+              </table>
+            </div>
+          </div>
+        `;
+        root.insertAdjacentHTML('beforeend', html);
+      }
+
+      // 兜底：没有任何内容也不空白
+      if((!data.paragraphs || !data.paragraphs.length) && (!data.rows || !data.rows.length)){
+        document.getElementById('fallbackBox').style.display = '';
+      }
+    }
+
+    fetch(mdUrl, { cache:'no-store' })
+      .then(r => { if(!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
+      .then(md => render(parseMd(md)))
+      .catch(err => {
+        console.error(err);
+        document.getElementById('fallbackBox').style.display = '';
+      });
+  </script>
+
+  <!-- 本页小补丁：只美化“表格”，不动全局 CSS -->
+  <style>
+    .team-table-wrap{
+      border-radius:16px;
+      overflow:hidden;
+      border:1px solid rgba(17,24,39,.10);
+      background: #fff;
+      box-shadow: 0 10px 22px rgba(16,24,40,.08);
+    }
+    .team-table{
+      width:100%;
+      border-collapse:separate;
+      border-spacing:0;
+      background:#fff;
+      font-size:15px;
+    }
+    .team-table thead th{
+      padding:14px 14px;
+      text-align:left;
+      color:#fff;
+      font-weight:1000;
+      letter-spacing:.2px;
+      background: linear-gradient(90deg, #12b886, #0ea5e9);
+      border-bottom:1px solid rgba(255,255,255,.18);
+    }
+    .team-table tbody td{
+      padding:14px 14px;
+      color:#111827;
+      font-weight:650;
+      line-height:1.85;
+      border-bottom:1px solid rgba(17,24,39,.08);
+      vertical-align:top;
+      background:#fff;
+    }
+    .team-table tbody td:first-child{
+      width:28%;
+      font-weight:1000;
+      color:#0b2a5b;
+      position:relative;
+      padding-left:18px;
+    }
+    .team-table tbody td:first-child::before{
+      content:"";
+      position:absolute;
+      left:10px;
+      top:16px;
+      bottom:16px;
+      width:4px;
+      border-radius:999px;
+      background: #ff4d4f;
+      box-shadow: 0 0 0 4px rgba(255,77,79,.12);
+    }
+    .team-table tbody tr:nth-child(1) td:first-child::before{
+      background:#ff4d4f; box-shadow: 0 0 0 4px rgba(255,77,79,.12);
+    }
+    .team-table tbody tr:nth-child(2) td:first-child::before{
+      background:#12b886; box-shadow: 0 0 0 4px rgba(18,184,134,.12);
+    }
+    .team-table tbody tr:nth-child(3) td:first-child::before{
+      background:#7c3aed; box-shadow: 0 0 0 4px rgba(124,58,237,.12);
+    }
+    .team-table tbody tr:nth-child(odd) td{
+      background: rgba(18,184,134,.04);
+    }
+    .team-table tbody tr:hover td{
+      background: rgba(14,165,233,.08);
+    }
+    .team-table thead th:first-child{ border-top-left-radius:14px; }
+    .team-table thead th:last-child{ border-top-right-radius:14px; }
+    .team-table tbody tr:last-child td:first-child{ border-bottom-left-radius:14px; }
+    .team-table tbody tr:last-child td:last-child{ border-bottom-right-radius:14px; }
+
+    @media (max-width: 900px){
+      .team-table{ font-size:14px; }
+      .team-table thead th,
+      .team-table tbody td{ padding:12px 12px; }
+      .team-table tbody td:first-child{ width:36%; padding-left:18px; }
+    }
+  </style>
+</body>
+</html>

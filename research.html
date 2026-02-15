@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>研究团队 | 研究方向</title>
+  <link rel="stylesheet" href="assets/style.css" />
+</head>
+
+<body>
+  <div class="shell">
+    <aside class="sidebar">
+      <nav class="nav" aria-label="Site Navigation">
+        <a href="index.html"><span class="pill"></span>团队主页</a>
+        <a href="research.html"><span class="pill"></span>研究方向</a>
+        <a href="papers.html"><span class="pill"></span>论文专著</a>
+        <a href="team.html"><span class="pill"></span>研究团队</a>
+      </nav>
+    </aside>
+
+    <main class="main">
+      <div class="container">
+        <section class="card">
+          <div class="research-head">
+            <!-- ✅ 保持你原来的标题写法/类名 -->
+            <h1 class="page-title" style="margin:0;">研究方向主要包括（点击链接查看详细信息）：</h1>
+          </div>
+
+          <!-- ✅ 保持你原来的 research-grid 容器 -->
+          <div class="research-grid" id="researchGrid"></div>
+
+          <!-- 读取失败兜底（不影响原风格） -->
+          <div class="stack-item" id="fallbackBox" style="display:none; margin-top:14px;">
+            <div class="stack-h">提示</div>
+            <p class="stack-p" style="margin:0;">
+              未能读取 <b>content/research.md</b>，请检查文件是否存在以及路径是否正确。
+            </p>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // ===== 左侧导航高亮（保留你原来的逻辑）=====
+    const path = location.pathname.split('/').pop() || 'index.html';
+    document.querySelectorAll('.nav a').forEach(a=>{
+      if(a.getAttribute('href')===path) a.classList.add('active');
+    });
+
+    // ===== 从 Markdown 读取研究方向列表并生成“你原来同款卡片”=====
+    const mdUrl = 'content/research.md';
+
+    function escHtml(s){
+      return (s || '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+    }
+
+    function parseItems(md){
+      const lines = md.replace(/\r\n/g, '\n').split('\n');
+      const items = [];
+
+      // 支持格式：
+      // 1. 标题 | research-1.html
+      // 1. 标题 | research-1.html | 可选说明
+      const re = /^\s*(\d+)\.\s*(.+?)\s*$/;
+
+      for(const line0 of lines){
+        const line = line0.trim();
+        if(!line) continue;
+        if(line.startsWith('#')) continue;   // 允许 md 里写标题，但这里不使用
+        if(line.startsWith('##')) continue;
+
+        const m = line.match(re);
+        if(!m) continue;
+
+        const no = m[1];
+        const rest = m[2];
+        const parts = rest.split('|').map(s=>s.trim()).filter(Boolean);
+
+        const title = parts[0] || '';
+        const href  = parts[1] || '';
+        // desc 不渲染（保持你原来卡片只有标题）
+        items.push({ no, title, href });
+      }
+      return items;
+    }
+
+    function render(items){
+      const grid = document.getElementById('researchGrid');
+      grid.innerHTML = '';
+
+      if(!items.length){
+        document.getElementById('fallbackBox').style.display = '';
+        return;
+      }
+
+      // ✅ 完全按你原来的 DOM 结构输出，样式100%沿用 style.css
+      items.forEach(it=>{
+        const a = document.createElement('a');
+        a.className = 'research-card';
+        a.href = it.href || 'javascript:void(0)';
+
+        a.innerHTML = `
+          <div class="top">
+            <div class="no">${escHtml(it.no)}</div>
+            <div>
+              <div class="title">${escHtml(it.title)}</div>
+            </div>
+            <div class="arrow">›</div>
+          </div>
+          <div class="line"></div>
+        `;
+        grid.appendChild(a);
+      });
+    }
+
+    fetch(mdUrl, { cache:'no-store' })
+      .then(r => { if(!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
+      .then(md => render(parseItems(md)))
+      .catch(err => {
+        console.error(err);
+        document.getElementById('fallbackBox').style.display = '';
+      });
+  </script>
+</body>
+</html>

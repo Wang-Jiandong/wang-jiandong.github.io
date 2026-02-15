@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>研究方向 | 单变量报警器的性能评价与优化设计</title>
+  <link rel="stylesheet" href="assets/style.css" />
+</head>
+
+<body>
+  <div class="shell">
+    <!-- ===== Sidebar ===== -->
+    <aside class="sidebar">
+      <nav class="nav" aria-label="Site Navigation">
+        <a href="index.html"><span class="pill"></span>团队主页</a>
+        <a href="research.html"><span class="pill"></span>研究方向</a>
+        <a href="papers.html"><span class="pill"></span>论文专著</a>
+        <a href="team.html"><span class="pill"></span>研究团队</a>
+      </nav>
+    </aside>
+
+    <!-- ===== Main ===== -->
+    <main class="main">
+      <div class="container">
+        <section class="card">
+
+          <h1 class="detail-title">单变量报警器的性能评价与优化设计</h1>
+
+          <div class="detail-stack">
+
+            <div class="stack-item">
+              <div class="stack-h">研究背景</div>
+              <p class="stack-p">
+在工业生产监控中，单变量报警器（越限报警器、延迟报警器、死区报警器等）是重要的安全保障。如果报警器性能不佳，频繁出现误报与漏报，则会引发“狼来了”效应，造成生产操作人员不信任报警信息，形成重大安全隐患！
+              </p>
+            </div>
+
+            <div class="stack-item">
+              <div class="stack-h">研究目标</div>
+              <p class="stack-p">
+基于近期历史运行数据，评价报警器的误报警率、漏报警率等性能指标，给出报警阈值、延迟时间、死区宽度等报警器参数的最优值，用来提高报警器的性能指标，减少未来的误报警与漏报警的发生次数。
+              </p>
+            </div>
+
+            <div class="stack-item">
+              <div class="stack-h">主要思路</div>
+              <p class="stack-p">
+针对已配置报警的过程变量，通过比较报警阈值与过程变量均值的相对关系，识别该变量处于正常状况或异常状况，计算误报警率、漏报警率等性能指标；依据不同运行状况下的观测数据，收集报警持续时间、报警幅值偏差等关键特征量，获得最优的报警器参数（包括报警阈值、延迟时间、死区宽度等），使得报警性能指标趋近于理想值。
+              </p>
+            </div>
+
+            <div class="stack-item">
+              <div class="stack-h">应用案例</div>
+              <p class="stack-p">
+以三水箱系统为实验对象，研发了报警在线监测、报警性能评价、报警优化设计等功能模块，通过设置堵塞、泄漏、外部扰动等异常状况，对水箱液位进行持续报警监测，并对比了优化设计前后以及不同类型的报警器在相同实验条件下的性能指标，说明了报警器性能评价与优化设计的必要性。
+              </p>
+<div class="video-wrap video-small">
+  <video controls preload="metadata" style="width:80%; display:block; margin:0 auto;">
+    <source src="assets/媒体3.mp4" type="video/mp4">
+  </video>
+</div>
+          </div>
+
+
+            <div class="stack-item">
+              <div class="stack-h">技术细节</div>
+              <p class="stack-p">
+详见 <a class="hot" href="papers.html">“论文专著”</a> 部分 —— 单变量报警器方面的代表性论文。
+              </p>
+            </div>
+          <p class="backline"><a class="hot" href="research.html">← 返回研究方向</a></p>
+
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const path = location.pathname.split('/').pop() || 'index.html';
+    document.querySelectorAll('.nav a').forEach(a=>{
+      if(a.getAttribute('href')===path) a.classList.add('active');
+    });
+    document.getElementById('y').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>

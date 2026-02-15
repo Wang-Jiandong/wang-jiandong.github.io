@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>研究方向 | 新的研究方向</title>
+  <link rel="stylesheet" href="assets/style.css" />
+
+  <!-- ✅ 本页小补丁：只控制图片大小&图题居中，不改全局CSS -->
+  <style>
+    .md-figure{
+      max-width: 560px;   /* 想更小就改 520 / 480 */
+      width: 100%;
+      height: auto;
+      display: block;
+      margin: 0 auto;
+      border-radius: 12px;
+      border: 1px solid rgba(17,24,39,.10);
+      background:#fff;
+    }
+    .figcap{
+      text-align:center;
+      font-weight:800;
+      font-size:13.5px;
+      margin:8px 0 0;
+      color: rgba(17,24,39,.85);
+      line-height:1.6;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="shell">
+    <aside class="sidebar">
+      <nav class="nav" aria-label="Site Navigation">
+        <a href="index.html"><span class="pill"></span>团队主页</a>
+        <a href="research.html"><span class="pill"></span>研究方向</a>
+        <a href="papers.html"><span class="pill"></span>论文专著</a>
+        <a href="team.html"><span class="pill"></span>研究团队</a>
+      </nav>
+    </aside>
+
+    <main class="main">
+      <div class="container">
+        <section class="card">
+
+          <h1 class="detail-title" id="pageTitle">新的研究方向</h1>
+
+          <div class="detail-stack" id="stackRoot"></div>
+
+          <p class="backline"><a class="hot" href="research.html">← 返回研究方向</a></p>
+
+          <div class="stack-item" id="fallbackBox" style="display:none; margin-top:14px;">
+            <div class="stack-h">提示</div>
+            <p class="stack-p" style="margin:0;">
+              未能读取 <b>content/research-4.md</b>，请检查文件是否存在以及路径是否正确。
+            </p>
+          </div>
+
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // ===== nav 高亮 =====
+    const path = location.pathname.split('/').pop() || 'index.html';
+    document.querySelectorAll('.nav a').forEach(a=>{
+      if(a.getAttribute('href')===path) a.classList.add('active');
+    });
+
+    const mdUrl = 'content/research-5.md';
+
+    function escHtml(s){
+      return (s || '').replace(/[&<>"']/g, m => ({
+        '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+      }[m]));
+    }
+
+    // 解析规则：
+    // # 标题
+    // ## 段落标题
+    // 视频：assets/xxx.mp4
+    // 图片：assets/xxx.png
+    // 图题：xxxxxx（配合视频/图片）
+    // 论文专著：XXX方向的代表性论文。
+   
+  function parseMd(md){
+    const lines = md.replace(/\r\n/g, '\n').split('\n');
+
+    let title = '新的研究方向';
+    let titleSet = false;
+
+    const sections = []; // {h, pLines:[], videoSrc:'', imgSrc:'', caption:''}
+    let paperTail = '';
+    let cur = null;
+
+    function pushCur(){
+      if(!cur) return;
+      cur.p = cur.pLines.join('\n').trim();
+      delete cur.pLines;
+      sections.push(cur);
+      cur = null;
+    }
+
+    for(const rawLine of lines){
+      const t = rawLine.trim();
+      if(!t) continue;
+
+      // ✅ 这些行作为“注释/分隔线”，不进入网页正文
+      if(
+        t.startsWith('//') ||                 // 老师注释
+        t.startsWith('===') || t.startsWith('---') || t.startsWith('***') ||
+        t.startsWith('【') || t.startsWith('（注意') ||
+        t.startsWith('(') && t.includes('注意')    // 容错
+      ){
+        continue;
+      }
+
+      // ✅ 只认第一个 "# " 为页面标题（后面的 # 不再抢标题）
+      if(t.startsWith('# ')){
+        if(!titleSet){
+          title = t.slice(2).trim() || title;
+          titleSet = true;
+        }else{
+          // 后续的 "# xxx" 当成普通文本，不当标题
+          if(!cur){
+            cur = { h: '说明', pLines: [], videoSrc:'', imgSrc:'', caption:'' };
+          }
+          cur.pLines.push(rawLine.replace(/^#\s*/,''));
+        }
+        continue;
+      }
+
+      if(t.startsWith('## ')){
+        pushCur();
+        cur = { h: t.slice(3).trim(), pLines: [], videoSrc:'', imgSrc:'', caption:'' };
+        continue;
+      }
+
+      if(t.startsWith('视频：')){
+        const src = t.replace(/^视频：/,'').trim();
+        if(cur) cur.videoSrc = src;
+        continue;
+      }
+
+      if(t.startsWith('图片：')){
+        const src = t.replace(/^图片：/,'').trim();
+        if(cur) cur.imgSrc = src;
+        continue;
+      }
+
+      if(t.startsWith('图题：')){
+        const cap = t.replace(/^图题：/,'').trim();
+        if(cur) cur.caption = cap;
+        continue;
+      }
+
+      if(t.startsWith('论文专著：')){
+        paperTail = t.replace(/^论文专著：/,'').trim();
+        continue;
+      }
+
+      if(!cur){
+        cur = { h:'说明', pLines:[], videoSrc:'', imgSrc:'', caption:'' };
+      }
+      cur.pLines.push(rawLine);
+    }
+
+    pushCur();
+    return { title, sections, paperTail };
+  }
+    function buildSectionHTML(sec){
+      const h = escHtml(sec.h || '');
+      const p = escHtml(sec.p || '').replace(/\n/g, '<br>');
+
+       // ✅ 同一个框里：优先视频，其次图片
+      let mediaHtml = '';
+      if(sec.videoSrc){
+        // ✅ 视频：不显示图题，尽量占满框（和你图二一样）
+        mediaHtml = `
+          <div class="video-wrap video-small" style="margin-top:12px;">
+            <video controls preload="metadata" style="width:90%; display:block; margin:0 auto;">
+              <source src="${escHtml(sec.videoSrc)}" type="video/mp4">
+            </video>
+          </div>
+        `;
+      }else if(sec.imgSrc){
+        // ✅ 图片：显示图题（居中）
+        mediaHtml = `
+          <div style="margin-top:12px;">
+            <img class="md-figure" src="${escHtml(sec.imgSrc)}" alt="${escHtml(sec.caption || '')}">
+            ${sec.caption ? `<p class="figcap">${escHtml(sec.caption)}</p>` : ``}
+          </div>
+        `;
+      }
+
+      return `
+        <div class="stack-item">
+          <div class="stack-h">${h}</div>
+          <p class="stack-p">${p}</p>
+          ${mediaHtml}
+        </div>
+      `;
+    }
+
+    // ✅ “技术细节 + 详见论文专著——xxx” 保持一个框里
+    function techBlockHTML(paperTail){
+      const tail = paperTail ? escHtml(paperTail) : '本研究方向的代表性论文。';
+      return `
+        <div class="stack-item">
+          <div class="stack-h">技术细节</div>
+          <p class="stack-p">
+            详见 <a class="hot" href="papers.html">“论文专著”</a> 部分 —— ${tail}
+          </p>
+        </div>
+      `;
+    }
+
+    function render(data){
+      document.getElementById('pageTitle').textContent = data.title || '新的研究方向';
+      document.title = '研究方向 | ' + (data.title || '新的研究方向');
+
+      const root = document.getElementById('stackRoot');
+      root.innerHTML = '';
+
+      if(!data.sections || data.sections.length === 0){
+        document.getElementById('fallbackBox').style.display = '';
+        return;
+      }
+
+      data.sections.forEach(sec=>{
+        root.insertAdjacentHTML('beforeend', buildSectionHTML(sec));
+      });
+
+      root.insertAdjacentHTML('beforeend', techBlockHTML(data.paperTail));
+    }
+
+    fetch(mdUrl, { cache: 'no-store' })
+      .then(r => { if(!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
+      .then(md => render(parseMd(md)))
+      .catch(err => {
+        console.error(err);
+        document.getElementById('fallbackBox').style.display = '';
+      });
+  </script>
+</body>
+</html>

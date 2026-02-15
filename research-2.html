@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>研究方向 | 基于正常工作区的离心泵运行状况监控</title>
+  <link rel="stylesheet" href="assets/style.css" />
+</head>
+
+<body>
+  <div class="shell">
+    <!-- ===== Sidebar ===== -->
+    <aside class="sidebar">
+      <nav class="nav" aria-label="Site Navigation">
+        <a href="index.html"><span class="pill"></span>团队主页</a>
+        <a href="research.html"><span class="pill"></span>研究方向</a>
+        <a href="papers.html"><span class="pill"></span>论文专著</a>
+        <a href="team.html"><span class="pill"></span>研究团队</a>
+      </nav>
+    </aside>
+
+    <!-- ===== Main ===== -->
+    <main class="main">
+      <div class="container">
+        <section class="card">
+
+          <h1 class="detail-title">基于正常工作区的离心泵运行状况监控</h1>
+
+          <div class="detail-stack">
+
+            <div class="stack-item">
+              <div class="stack-h">研究背景</div>
+              <p class="stack-p">
+                离心泵在运行过程中可能发生汽蚀、泄漏、堵塞等异常状况，会严重影响工业生产过程的安全性和经济性。例如，某大型燃煤发电机组的给水泵曾发生汽蚀，造成汽包水位大幅波动，最终引发发电机组出现紧急停机事故。
+              </p>
+            </div>
+
+            <div class="stack-item">
+              <div class="stack-h">研究目标</div>
+              <p class="stack-p">
+实时评价离心泵处于正常状况或异常运行状况，量化其安全性和运行效率指标，给出预警信息提醒生产运行人员关注即将出现的异常状况，从而及时采取调整措施，避免异常状况的出现及其伴随的不利后果。
+              </p>
+            </div>
+
+            <div class="stack-item">
+              <div class="stack-h">主要思路</div>
+              <p class="stack-p">
+依据机理知识和历史数据，建立离心泵的正常工作区模型，代表压力、流量、转速、温度、功率等关联变量在正常状况下的工作范围，使用工作点与正常工作区边界的归一化最短距离作为量化指标，实时表征离心泵的安全性，并实时计算各个工作点的运行效率，通过观察当前工作点的变化轨迹，以及安全性指标和运行效率的动态变化，识别即将出现的异常状况，必要时发出预警信息。
+              </p>
+            </div>
+
+<div class="stack-item">
+  <div class="stack-h">应用案例</div>
+  <p class="stack-p">
+搭建了变频离心泵的实验平台，研发了基于正常工作区的离心泵运行状况监控软硬件系统，通过观察工作点轨迹偏离正常工作区的变化趋势，识别了即将出现的汽蚀等异常状况（入口透明管道后续出现了从小到大的气泡，证实了所给出预警信息的有效性）。
+  </p>
+
+  <!-- ✅ 同一个框内的视频 -->
+  <div class="video-wrap video-small" style="margin-top:12px;">
+    <video controls preload="metadata" style="width:90%; display:block; margin:0 auto;">
+      <source src="assets/媒体4.mp4" type="video/mp4">
+    </video>
+  </div>
+</div>
+
+
+            <div class="stack-item">
+              <div class="stack-h">技术细节</div>
+              <p class="stack-p">
+详见 <a class="hot" href="papers.html">“论文专著”</a> 部分 —— 多变量报警器方面的代表性论文。
+              </p>
+            </div>
+          <p class="backline"><a class="hot" href="research.html">← 返回研究方向</a></p>
+
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const path = location.pathname.split('/').pop() || 'index.html';
+    document.querySelectorAll('.nav a').forEach(a=>{
+      if(a.getAttribute('href')===path) a.classList.add('active');
+    });
+    document.getElementById('y').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>

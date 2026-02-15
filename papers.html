@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>论文专著</title>
+  <link rel="stylesheet" href="assets/style.css" />
+
+  <!-- ✅ papers.html only：不动全局CSS -->
+  <style>
+    /* papers stack 间距 */
+    .papers-stack{ gap:14px; }
+
+    /* ResearchGate：黑色 + 下划线（只给 ResearchGate 这个词） */
+    a.rg-only{
+      color:#111827 !important;
+      font-weight:900;
+      text-decoration: underline;
+      text-decoration-color: rgba(17,24,39,.45);
+      text-underline-offset: 3px;
+    }
+
+    /* 代表性专著：书名链接黑色 + 下划线 */
+    a.book-link{
+      color:#111827 !important;
+      font-weight:900;
+      text-decoration: underline;
+      text-decoration-color: rgba(17,24,39,.45);
+      text-underline-offset: 3px;
+    }
+    a.book-link:hover{
+      color:#0b2a5b !important;
+      text-decoration-color: rgba(11,42,91,.55);
+    }
+
+    /* PDF 链接：黑色正文 + 细下划线 */
+    a.pdf-link{
+      color:#111827;
+      font-weight:650;
+      text-decoration: underline;
+      text-decoration-color: rgba(17,24,39,.22);
+      text-underline-offset: 3px;
+    }
+    a.pdf-link:hover{
+      color:#0b2a5b;
+      text-decoration-color: rgba(11,42,91,.35);
+    }
+
+    /* 顶部渐变线：stack-item 同款 */
+    .paper-card::before{
+      background: linear-gradient(90deg,
+        rgba(28,78,165,.75),
+        rgba(229,57,53,.28),
+        transparent
+      ) !important;
+    }
+
+    /* 代表性专著：稍微暖一点点 */
+    .paper-book::before{
+      background: linear-gradient(90deg,
+        rgba(28,78,165,.75),
+        rgba(229,57,53,.35),
+        transparent
+      ) !important;
+    }
+
+    /* 提示框背景轻一点 */
+    .paper-tip{
+      background:
+        linear-gradient(180deg, rgba(28,78,165,.05), rgba(11,42,91,.02)),
+        rgba(255,255,255,.92) !important;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="shell">
+    <!-- ===== Sidebar ===== -->
+    <aside class="sidebar">
+      <nav class="nav" aria-label="Site Navigation">
+        <a href="index.html"><span class="pill"></span>团队主页</a>
+        <a href="research.html"><span class="pill"></span>研究方向</a>
+        <a href="papers.html"><span class="pill"></span>论文专著</a>
+        <a href="team.html"><span class="pill"></span>研究团队</a>
+      </nav>
+    </aside>
+
+    <!-- ===== Main ===== -->
+    <main class="main">
+      <div class="container">
+        <section class="card">
+
+          <h1 class="detail-title" id="pageTitle">论文专著</h1>
+
+          <div class="detail-stack papers-stack" id="papersRoot"></div>
+
+          <div class="stack-item" id="fallbackBox" style="display:none; margin-top:14px;">
+            <div class="stack-h">提示</div>
+            <p class="stack-p" style="margin:0;">
+              未能读取 <b>content/papers.md</b>，请检查文件是否存在以及路径是否正确。
+            </p>
+          </div>
+
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // ===== nav 高亮 =====
+    const path = location.pathname.split('/').pop() || 'index.html';
+    document.querySelectorAll('.nav a').forEach(a=>{
+      if(a.getAttribute('href')===path) a.classList.add('active');
+    });
+
+    const mdUrl = 'content/papers.md';
+
+    function escHtml(s){
+      return (s || '').replace(/[&<>"']/g, m => ({
+        '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+      }[m]));
+    }
+
+    // 规则（给老师看的“纯文字”）：
+    // # 论文专著
+    // 提示：xxx（允许包含 [ResearchGate](url)）
+    // ## 代表性专著
+    // - [书名/描述](url)
+    // ## 单变量报警器方面的代表性论文
+    // - [论文条目](assets/1.1.pdf)
+    // ...
+    function parseMd(md){
+      const lines = md.replace(/\r\n/g, '\n').split('\n');
+
+      let pageTitle = '论文专著';
+      let tipText = '';
+      const blocks = [];  // {title:'', items:[{text, href, kind}]}
+      let cur = null;
+
+      function pushCur(){
+        if(!cur) return;
+        blocks.push(cur);
+        cur = null;
+      }
+
+      function parseMdLink(s){
+        // 只解析一个 markdown link：[text](href)，其余当纯文本
+        const m = s.match(/\[([^\]]+)\]\(([^)]+)\)/);
+        if(!m) return { text: s.trim(), href: '' };
+        const text = (m[1] || '').trim();
+        const href = (m[2] || '').trim();
+        // 把 link 前后纯文本拼进 text（保持简单）
+        const before = s.slice(0, m.index).trim();
+        const after  = s.slice(m.index + m[0].length).trim();
+        const fullText = [before, text, after].filter(Boolean).join(' ');
+        return { text: fullText, href };
+      }
+
+      for(const rawLine of lines){
+        const t = rawLine.trim();
+        if(!t) continue;
+
+        // 注释/分隔线忽略
+        if(t.startsWith('//') || t.startsWith('===') || t.startsWith('---') || t.startsWith('***')) continue;
+
+        if(t.startsWith('# ')){
+          pageTitle = t.slice(2).trim() || pageTitle;
+          continue;
+        }
+
+        if(t.startsWith('提示：')){
+          tipText = t.replace(/^提示：/,'').trim();
+          continue;
+        }
+
+        if(t.startsWith('## ')){
+          pushCur();
+          cur = { title: t.slice(3).trim(), items: [] };
+          continue;
+        }
+
+        if(t.startsWith('- ')){
+          if(!cur){
+            cur = { title: '论文列表', items: [] };
+          }
+          const itemStr = t.slice(2).trim();
+
+          const { text, href } = parseMdLink(itemStr);
+
+          // 简单区分：书/论文链接样式
+          const kind = (cur.title.includes('专著') ? 'book' : 'pdf');
+
+          cur.items.push({ text, href, kind });
+          continue;
+        }
+      }
+      pushCur();
+
+      return { pageTitle, tipText, blocks };
+    }
+
+    function renderTip(tipText){
+      if(!tipText) return '';
+
+      // 把 “ResearchGate” 这个词做成黑色下划线链接（只处理一处）
+      // 允许写成：请访问 [ResearchGate](xxx) ...
+      const m = tipText.match(/\[ResearchGate\]\(([^)]+)\)/);
+      if(m){
+        const url = m[1].trim();
+        const before = tipText.slice(0, m.index);
+        const after = tipText.slice(m.index + m[0].length);
+        return `
+          <div class="stack-item paper-card paper-tip">
+            <p class="stack-p" style="margin:0;">
+              ${escHtml(before)}
+              <a class="rg-only" href="${escHtml(url)}" target="_blank" rel="noopener">ResearchGate</a>
+              ${escHtml(after)}
+            </p>
+          </div>
+        `;
+      }
+
+      // 没写链接就纯文本
+      return `
+        <div class="stack-item paper-card paper-tip">
+          <p class="stack-p" style="margin:0;">${escHtml(tipText)}</p>
+        </div>
+      `;
+    }
+
+    function renderBlock(block){
+      const title = escHtml(block.title || '');
+
+      const cls = title.includes('专著') ? 'paper-book' : 'paper-dir';
+      const itemsHtml = (block.items || []).map((it, idx) => {
+        const no = idx + 1;
+        const text = escHtml(it.text || '');
+        const href = (it.href || '').trim();
+
+        const aClass = (it.kind === 'book') ? 'book-link' : 'pdf-link';
+
+        // 允许老师写无链接条目（就显示纯文本）
+        if(!href){
+          return `<p class="stack-p" style="margin:${idx===0?'0':'10px 0 0'};"><span>[${no}]</span> ${text}</p>`;
+        }
+
+        return `
+          <p class="stack-p" style="margin:${idx===0?'0':'10px 0 0'};">
+            <span>[${no}]</span>
+            <a class="${aClass}" href="${escHtml(href)}" target="_blank" rel="noopener">${text}</a>
+          </p>
+        `;
+      }).join('');
+
+      return `
+        <div class="stack-item paper-card ${cls}">
+          <div class="stack-h">${title}:</div>
+          ${itemsHtml}
+        </div>
+      `;
+    }
+
+    function render(data){
+      document.getElementById('pageTitle').textContent = data.pageTitle || '论文专著';
+      document.title = data.pageTitle || '论文专著';
+
+      const root = document.getElementById('papersRoot');
+      root.innerHTML = '';
+
+      // tip
+      root.insertAdjacentHTML('beforeend', renderTip(data.tipText));
+
+      // blocks
+      (data.blocks || []).forEach(b=>{
+        root.insertAdjacentHTML('beforeend', renderBlock(b));
+      });
+    }
+
+    fetch(mdUrl, { cache: 'no-store' })
+      .then(r => { if(!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
+      .then(md => render(parseMd(md)))
+      .catch(err => {
+        console.error(err);
+        document.getElementById('fallbackBox').style.display = '';
+      });
+  </script>
+</body>
+</html>
