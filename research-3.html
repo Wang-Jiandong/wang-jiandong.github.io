@@ -1,10 +1,28 @@
-<!doctype html>
+<!doctype html> 
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>研究方向 | 调节阀流量非线性特征估计与补偿</title>
   <link rel="stylesheet" href="assets/style.css" />
+
+  <!-- ✅ 本页小补丁：手机端把图题放到各自图片下面；电脑端保持你原来的两列图题 -->
+  <style>
+    /* 默认：电脑端仍用底部 cap-row，两张图各自下面的 cap 隐藏 */
+    .cap-in-fig{ display:none; }
+
+    /* 手机端：图变竖排时，把图题放到图下面，并隐藏底部 cap-row */
+    @media (max-width: 900px){
+      .cap-row{ display:none; }
+      .cap-in-fig{
+        display:block;
+        text-align:center;
+        font-weight:900;
+        margin-top:10px;
+        line-height:1.6;
+      }
+    }
+  </style>
 </head>
 
 <body>
@@ -59,20 +77,25 @@
               <div class="fig-grid" style="margin-top:12px;">
                 <div class="fig">
                   <img src="assets/图片1.png" alt="图1a 从历史数据中挖掘适合建模的特殊数据段" />
+                  <!-- ✅ 手机端显示：图下图题 -->
+                  <div class="cap cap-in-fig">图1a 从历史数据中挖掘适合建模的特殊数据段</div>
                 </div>
 
                 <div class="fig">
                   <img src="assets/图片2.png" alt="图1b 基于空间密度峰值曲线的非线性特征估计结果" />
+                  <!-- ✅ 手机端显示：图下图题 -->
+                  <div class="cap cap-in-fig">图1b 基于空间密度峰值曲线的非线性特征估计结果</div>
                 </div>
               </div>
 
+              <!-- ✅ 电脑端显示：底部两列图题（你原来的样式保持不变） -->
               <div class="cap-row" style="margin-top:10px;">
                 <div class="cap">图1a 从历史数据中挖掘适合建模的特殊数据段</div>
                 <div class="cap">图1b 基于空间密度峰值曲线的非线性特征估计结果</div>
               </div>
             </div>
 
-            <!-- ✅ 论文专著：单独一个框（不要和图片/应用案例混在一起） -->
+            <!-- ✅ 技术细节 -->
             <div class="stack-item">
               <div class="stack-h">技术细节</div>
               <p class="stack-p">
